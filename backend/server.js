@@ -12,6 +12,27 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 connectDB();
 
 const app = express();
+const allowedOrigins = [
+  "https://gatoes.vercel.app",   // ✅ Production frontend
+  "http://localhost:5173"        // ✅ Local development frontend
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("CORS policy violation"));
+      }
+    },
+    credentials: true, // If using cookies or authentication
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 
 // Middleware
