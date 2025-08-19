@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Download, FileText, Paperclip } from 'lucide-react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, User, Download, FileText, Paperclip, Trash2 } from 'lucide-react';
 import api from '../api';
 
 export default function SubmissionDetail(){
   const { id, submissionId } = useParams();
+  const navigate = useNavigate();
   const [submission, setSubmission] = useState(null);
   const [form, setForm] = useState(null);
   const [status, setStatus] = useState('loading');
@@ -19,6 +20,17 @@ export default function SubmissionDetail(){
       setStatus('ready');
     }).catch(()=>setStatus('error'));
   },[id, submissionId]);
+
+  const deleteSubmission = async () => {
+    if (window.confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
+      try {
+        await api.delete(`/forms/${id}/submissions/${submissionId}`);
+        navigate(`/forms/${id}/submissions`);
+      } catch (e) {
+        console.error('Failed to delete submission:', e);
+      }
+    }
+  };
 
   if(status==='loading') return (
     <div className="flex items-center justify-center h-64">
@@ -60,10 +72,19 @@ export default function SubmissionDetail(){
                   <p className="text-gray-600">{form?.title}</p>
                 </div>
               </div>
-              <button className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                <Download size={16} />
-                <span>Export</span>
-              </button>
+              <div className="flex space-x-2">
+                <button className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                  <Download size={16} />
+                  <span>Export</span>
+                </button>
+                <button 
+                  onClick={deleteSubmission}
+                  className="bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  <span>Delete</span>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">

@@ -41,9 +41,16 @@ export const updateForm = async (req, res) => {
 
 export const deleteForm = async (req, res) => {
   try {
-    const form = await Form.findByIdAndDelete(req.params.id);
+    const form = await Form.findById(req.params.id);
     if (!form) return res.status(404).json({ error: 'Form not found' });
-    res.json({ message: 'Form deleted' });
+    
+    // Delete all submissions for this form
+    await Submission.deleteMany({ form: req.params.id });
+    
+    // Delete the form
+    await Form.findByIdAndDelete(req.params.id);
+    
+    res.json({ message: 'Form and all submissions deleted successfully' });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

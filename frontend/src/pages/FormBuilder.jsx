@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload } from 'lucide-react';
+import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload, ArrowLeft, Trash2 } from 'lucide-react';
 import api from '../api';
 
 const fieldTemplates = [
@@ -76,11 +76,31 @@ export default function FormBuilder() {
     }
   };
 
+  const deleteForm = async () => {
+    if (window.confirm(`Are you sure you want to delete "${title}" and all its submissions? This action cannot be undone.`)) {
+      try {
+        await api.delete(`/forms/${id}`);
+        navigate('/');
+      } catch(e) {
+        setError(e.message);
+      }
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Left Sidebar - Field Types */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft size={20} />
+              <span>Back to Dashboard</span>
+            </Link>
+          </div>
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Form Elements</h2>
           <p className="text-sm text-gray-600">Drag or click to add fields</p>
         </div>
@@ -133,6 +153,16 @@ export default function FormBuilder() {
                 Data
               </Link>
             </div>
+          )}
+
+          {id && (
+            <button 
+              onClick={deleteForm}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+            >
+              <Trash2 size={14} />
+              Delete Form
+            </button>
           )}
           
           {error && (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Eye, Download, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, Download, Users, Trash2 } from 'lucide-react';
 import api from '../api';
 
 export default function Submissions() {
@@ -11,6 +11,10 @@ export default function Submissions() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    loadData();
+  }, [id]);
+
+  const loadData = () => {
     Promise.all([
       api.get(`/forms/${id}`),
       api.get(`/forms/${id}/submissions`)
@@ -22,7 +26,18 @@ export default function Submissions() {
       setError(e.message);
       setLoading(false);
     });
-  }, [id]);
+  };
+
+  const deleteSubmission = async (submissionId) => {
+    if (window.confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
+      try {
+        await api.delete(`/forms/${id}/submissions/${submissionId}`);
+        setItems(prev => prev.filter(s => s._id !== submissionId));
+      } catch (e) {
+        setError(e.message);
+      }
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -140,13 +155,22 @@ export default function Submissions() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link 
-                          to={`/forms/${id}/submissions/${s._id}`}
-                          className="text-blue-600 hover:text-blue-900 font-medium text-sm flex items-center justify-end space-x-1 transition-colors"
-                        >
-                          <Eye size={16} />
-                          <span>View Details</span>
-                        </Link>
+                        <div className="flex items-center justify-end space-x-2">
+                          <Link 
+                            to={`/forms/${id}/submissions/${s._id}`}
+                            className="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </Link>
+                          <button
+                            onClick={() => deleteSubmission(s._id)}
+                            className="text-gray-600 hover:text-red-600 p-1 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

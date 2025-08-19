@@ -41,9 +41,24 @@ export const getSubmissions = async (req, res) => {
 export const getSubmission = async (req, res) => {
   try {
     const { id, submissionId } = req.params;
-  const submission = await Submission.findOne({ _id: submissionId, form: id });
-  if (!submission) return res.status(404).json({ error: 'Submission not found' });
-  res.json(submission);
+    const submission = await Submission.findOne({ _id: submissionId, form: id });
+    if (!submission) return res.status(404).json({ error: 'Submission not found' });
+    res.json(submission);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+export const deleteSubmission = async (req, res) => {
+  try {
+    const { id, submissionId } = req.params;
+    const submission = await Submission.findOneAndDelete({ _id: submissionId, form: id });
+    if (!submission) return res.status(404).json({ error: 'Submission not found' });
+    
+    // Decrease form submission count
+    await Form.findByIdAndUpdate(id, { $inc: { submissionsCount: -1 } });
+    
+    res.json({ message: 'Submission deleted successfully' });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

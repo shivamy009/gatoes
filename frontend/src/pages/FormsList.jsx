@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical } from 'lucide-react';
+import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical, Trash2 } from 'lucide-react';
 import api from '../api';
 
 export default function FormsList() {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const load = async () => {
     try {
@@ -16,6 +17,17 @@ export default function FormsList() {
       setError(e.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteForm = async (id, title) => {
+    if (window.confirm(`Are you sure you want to delete "${title}" and all its submissions? This action cannot be undone.`)) {
+      try {
+        await api.delete(`/forms/${id}`);
+        setForms(prev => prev.filter(f => f._id !== id));
+      } catch (e) {
+        setError(e.message);
+      }
     }
   };
   useEffect(() => { load(); }, []);
@@ -138,6 +150,13 @@ export default function FormsList() {
                           >
                             <BarChart3 size={16} />
                           </Link>
+                          <button
+                            onClick={() => deleteForm(f._id, f.title)}
+                            className="text-gray-600 hover:text-red-600 p-1 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </td>
                     </tr>
