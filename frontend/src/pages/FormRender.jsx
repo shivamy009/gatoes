@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { FileText, Send, CheckCircle, AlertCircle, Upload } from 'lucide-react';
 import api from '../api';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { FormSkeleton } from '../components/Skeleton';
 
 export default function FormRender() {
   const { id } = useParams();
@@ -13,7 +15,15 @@ export default function FormRender() {
   const [uploadProgress, setUploadProgress] = useState({});
 
   useEffect(() => {
-    api.get(`/forms/${id}`).then(r => { setForm(r.data); setStatus('ready'); }).catch(e => { setStatus('error'); });
+    api.get(`/forms/${id}`)
+      .then(r => { 
+        setForm(r.data); 
+        setStatus('ready'); 
+      })
+      .catch(e => { 
+        setStatus('error'); 
+        toast.error('Failed to load form!');
+      });
   }, [id]);
 
   const submit = async (e) => {
@@ -48,6 +58,7 @@ export default function FormRender() {
         if (fileInput && fileInput.files.length > 0) {
           const file = fileInput.files[0];
           setUploadProgress(prev => ({ ...prev, [field.name]: 'uploading' }));
+          toast.loading(`Uploading ${file.name}...`, { id: `upload-${field.name}` });
           
           try {
             const uploadResult = await uploadToCloudinary(file);
@@ -59,8 +70,10 @@ export default function FormRender() {
             // Store filename in the original field name for display in responses
             data[field.name] = uploadResult.originalName;
             setUploadProgress(prev => ({ ...prev, [field.name]: 'completed' }));
+            toast.success(`${file.name} uploaded successfully!`, { id: `upload-${field.name}` });
           } catch (uploadError) {
             setUploadProgress(prev => ({ ...prev, [field.name]: 'failed' }));
+            toast.error(`Failed to upload ${file.name}`, { id: `upload-${field.name}` });
             throw new Error(`File upload failed: ${uploadError.message}`);
           }
         } else if (field.required) {
@@ -71,8 +84,11 @@ export default function FormRender() {
       
       const response = await api.post(`/forms/${id}/submissions`, data);
       setMessage({ type: 'success', text: response.data.message });
+      toast.success('Form submitted successfully!');
     } catch (e) {
-      setMessage({ type: 'error', text: e.response?.data?.error || e.message });
+      const errorMsg = e.response?.data?.error || e.message;
+      setMessage({ type: 'error', text: errorMsg });
+      toast.error('Failed to submit form: ' + errorMsg);
     } finally {
       setSubmitting(false);
       setUploadProgress({});
@@ -80,8 +96,10 @@ export default function FormRender() {
   };
 
   if (status==='loading') return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-2xl mx-auto px-4">
+        <FormSkeleton fields={5} />
+      </div>
     </div>
   );
   

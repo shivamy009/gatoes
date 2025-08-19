@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload, ArrowLeft, Trash2, Hash } from 'lucide-react';
 import api from '../api';
 
@@ -26,12 +27,19 @@ export default function FormBuilder() {
 
   useEffect(() => {
     if (id) {
-      api.get(`/forms/${id}`).then(r => {
-        const form = r.data;
-        setTitle(form.title);
-        setDescription(form.description || '');
-        setFields(form.fields || []);
-      }).catch(e => setError(e.message));
+      toast.loading('Loading form...', { id: 'load-form' });
+      api.get(`/forms/${id}`)
+        .then(r => {
+          const form = r.data;
+          setTitle(form.title);
+          setDescription(form.description || '');
+          setFields(form.fields || []);
+          toast.success('Form loaded successfully!', { id: 'load-form' });
+        })
+        .catch(e => {
+          toast.error('Failed to load form: ' + e.message, { id: 'load-form' });
+          setError(e.message);
+        });
     }
   }, [id]);
 
@@ -39,6 +47,7 @@ export default function FormBuilder() {
     const newField = { ...tpl, name: tpl.type + '_' + (fields.length + 1), required: false };
     setFields(prev => [...prev, newField]);
     setSelectedField(fields.length);
+    toast.success(`${tpl.label} field added!`);
   };
 
   const updateField = (index, patch) => {
@@ -46,8 +55,10 @@ export default function FormBuilder() {
   };
 
   const removeField = (index) => {
+    const fieldName = fields[index]?.label || 'Field';
     setFields(prev => prev.filter((_,i) => i!==index));
     setSelectedField(null);
+    toast.success(`${fieldName} removed!`);
   };
 
   const moveField = (index, dir) => {
@@ -63,14 +74,18 @@ export default function FormBuilder() {
   const save = async () => {
     setSaving(true); setError(null);
     try {
+      toast.loading('Saving form...', { id: 'save-form' });
       const payload = { title, description, fields };
       if (id) {
         await api.put(`/forms/${id}`, payload);
+        toast.success('Form saved successfully!', { id: 'save-form' });
       } else {
         const { data } = await api.post('/forms', payload);
+        toast.success('Form created successfully!', { id: 'save-form' });
         navigate(`/forms/${data._id}/edit`);
       }
     } catch(e) {
+      toast.error('Failed to save form: ' + e.message, { id: 'save-form' });
       setError(e.message);
     } finally {
       setSaving(false);
@@ -80,9 +95,12 @@ export default function FormBuilder() {
   const deleteForm = async () => {
     if (window.confirm(`Are you sure you want to delete "${title}" and all its submissions? This action cannot be undone.`)) {
       try {
+        toast.loading('Deleting form...', { id: 'delete-form' });
         await api.delete(`/forms/${id}`);
+        toast.success('Form deleted successfully!', { id: 'delete-form' });
         navigate('/');
       } catch(e) {
+        toast.error('Failed to delete form: ' + e.message, { id: 'delete-form' });
         setError(e.message);
       }
     }

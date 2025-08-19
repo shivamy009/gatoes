@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Eye, Settings, ExternalLink, Copy, Check } from 'lucide-react';
 import api from '../api';
+import { FormSkeleton } from '../components/Skeleton';
 
 export default function FormPreview() {
   const { id } = useParams();
@@ -28,6 +30,7 @@ export default function FormPreview() {
     try {
       await navigator.clipboard.writeText(formUrl);
       setCopied(true);
+      toast.success('Form link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       // Fallback for older browsers
@@ -38,31 +41,36 @@ export default function FormPreview() {
       document.execCommand('copy');
       document.body.removeChild(textArea);
       setCopied(true);
+      toast.success('Form link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const publishForm = async () => {
     try {
+      toast.loading('Publishing form...', { id: 'publish' });
       await api.put(`/forms/${id}`, { ...form, status: 'published' });
       setForm(prev => ({ ...prev, status: 'published' }));
+      toast.success('Form published successfully!', { id: 'publish' });
     } catch (e) {
-      alert('Failed to publish form: ' + e.message);
+      toast.error('Failed to publish form: ' + e.message, { id: 'publish' });
     }
   };
 
   const unpublishForm = async () => {
     try {
+      toast.loading('Unpublishing form...', { id: 'unpublish' });
       await api.put(`/forms/${id}`, { ...form, status: 'draft' });
       setForm(prev => ({ ...prev, status: 'draft' }));
+      toast.success('Form unpublished successfully!', { id: 'unpublish' });
     } catch (e) {
-      alert('Failed to unpublish form: ' + e.message);
+      toast.error('Failed to unpublish form: ' + e.message, { id: 'unpublish' });
     }
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="p-6">
+      <FormSkeleton fields={5} />
     </div>
   );
 

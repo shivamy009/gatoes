@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Calendar, User, Download, FileText, Paperclip, Trash2 } from 'lucide-react';
 import api from '../api';
+import { FormSkeleton } from '../components/Skeleton';
 
 export default function SubmissionDetail(){
   const { id, submissionId } = useParams();
@@ -11,6 +13,7 @@ export default function SubmissionDetail(){
   const [status, setStatus] = useState('loading');
 
   useEffect(()=>{
+    toast.loading('Loading submission details...', { id: 'load-submission' });
     Promise.all([
       api.get(`/forms/${id}`),
       api.get(`/forms/${id}/submissions/${submissionId}`)
@@ -18,23 +21,30 @@ export default function SubmissionDetail(){
       setForm(formRes.data);
       setSubmission(subRes.data);
       setStatus('ready');
-    }).catch(()=>setStatus('error'));
+      toast.success('Submission details loaded!', { id: 'load-submission' });
+    }).catch(()=>{
+      setStatus('error');
+      toast.error('Failed to load submission details!', { id: 'load-submission' });
+    });
   },[id, submissionId]);
 
   const deleteSubmission = async () => {
     if (window.confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
       try {
+        toast.loading('Deleting submission...', { id: 'delete-submission' });
         await api.delete(`/forms/${id}/submissions/${submissionId}`);
+        toast.success('Submission deleted successfully!', { id: 'delete-submission' });
         navigate(`/forms/${id}/submissions`);
       } catch (e) {
+        toast.error('Failed to delete submission: ' + e.message, { id: 'delete-submission' });
         console.error('Failed to delete submission:', e);
       }
     }
   };
 
   if(status==='loading') return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="p-6">
+      <FormSkeleton fields={6} />
     </div>
   );
 

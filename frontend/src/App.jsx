@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { Home, FileText, Plus, BarChart3 } from 'lucide-react';
 import FormsList from './pages/FormsList.jsx';
 import FormBuilder from './pages/FormBuilder.jsx';
@@ -102,6 +103,26 @@ export default function App() {
           <Route path="/forms/:id/submissions/:submissionId" element={<SubmissionDetail />} />
         </Routes>
       </Layout>
+      <Toaster 
+        position="bottom-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            style: {
+              background: '#10b981',
+            },
+          },
+          error: {
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
     </BrowserRouter>
   );
 }

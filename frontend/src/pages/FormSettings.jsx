@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Settings, Save, Shield, MessageSquare, Users, Clock } from 'lucide-react';
 import api from '../api';
 
@@ -52,6 +53,7 @@ export default function FormSettings() {
     setError(null);
     
     try {
+      toast.loading('Saving settings...', { id: 'save-settings' });
       const updatedForm = { 
         ...form, 
         ...settings,
@@ -61,8 +63,10 @@ export default function FormSettings() {
       await api.put(`/forms/${id}`, updatedForm);
       setForm(updatedForm);
       setSuccess(true);
+      toast.success('Settings saved successfully!', { id: 'save-settings' });
       setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
+      toast.error('Failed to save settings: ' + e.message, { id: 'save-settings' });
       setError(e.message);
     } finally {
       setSaving(false);

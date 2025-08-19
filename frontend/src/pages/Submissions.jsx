@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Calendar, Eye, Download, Users, Trash2 } from 'lucide-react';
+import { TableSkeleton } from '../components/Skeleton';
+import { ConfirmModal } from '../components/Modal';
 import api from '../api';
 
 export default function Submissions() {
@@ -9,12 +12,14 @@ export default function Submissions() {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, submission: null });
 
   useEffect(() => {
     loadData();
   }, [id]);
 
   const loadData = () => {
+    setLoading(true);
     Promise.all([
       api.get(`/forms/${id}`),
       api.get(`/forms/${id}/submissions`)
@@ -25,23 +30,34 @@ export default function Submissions() {
     }).catch(e => {
       setError(e.message);
       setLoading(false);
+      toast.error('Failed to load submissions!');
     });
   };
 
-  const deleteSubmission = async (submissionId) => {
-    if (window.confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
-      try {
-        await api.delete(`/forms/${id}/submissions/${submissionId}`);
-        setItems(prev => prev.filter(s => s._id !== submissionId));
-      } catch (e) {
-        setError(e.message);
-      }
+  const openDeleteModal = (submission) => {
+    setDeleteModal({ isOpen: true, submission });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, submission: null });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal.submission) return;
+    
+    try {
+      await api.delete(`/forms/${id}/submissions/${deleteModal.submission._id}`);
+      setItems(prev => prev.filter(s => s._id !== deleteModal.submission._id));
+      toast.success('Submission deleted successfully!');
+      closeDeleteModal();
+    } catch (e) {
+      toast.error('Failed to delete submission: ' + e.message);
     }
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="p-6">
+      <TableSkeleton rows={5} cols={4} />
     </div>
   );
 
@@ -158,17 +174,19 @@ export default function Submissions() {
                         <div className="flex items-center justify-end space-x-2">
                           <Link 
                             to={`/forms/${id}/submissions/${s._id}`}
-                            className="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors"
+                            className="inline-flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors"
                             title="View Details"
                           >
-                            <Eye size={16} />
+                            <Eye size={14} className="mr-1" />
+                            View
                           </Link>
                           <button
-                            onClick={() => deleteSubmission(s._id)}
-                            className="text-gray-600 hover:text-red-600 p-1 rounded transition-colors"
+                            onClick={() => openDeleteModal(s)}
+                            className="inline-flex items-center px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors"
                             title="Delete"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} className="mr-1" />
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -180,6 +198,17 @@ export default function Submissions() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Delete Submission"
+        message={`Are you sure you want to delete this submission? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmColor="red"
+      />
     </div>
   );
 }

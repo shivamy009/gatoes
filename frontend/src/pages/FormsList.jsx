@@ -1,49 +1,65 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical, Trash2, Copy, Settings, ExternalLink } from 'lucide-react';
+import { TableSkeleton } from '../components/Skeleton';
+import { ConfirmModal } from '../components/Modal';
 import api from '../api';
 
 export default function FormsList() {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, form: null });
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, form: null });
 
   const load = async () => {
     try {
       const { data } = await api.get('/forms');
       setForms(data);
     } catch (e) {
+      toast.error('Failed to load forms: ' + e.message);
       setError(e.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const duplicateForm = async (id, title) => {
+  const duplicateForm = async (form) => {
     try {
-      const response = await api.post(`/forms/${id}/duplicate`);
+      toast.loading('Duplicating form...', { id: 'duplicate' });
+      const response = await api.post(`/forms/${form._id}/duplicate`);
       setForms(prev => [response.data, ...prev]);
+      toast.success(`"${form.title}" duplicated successfully!`, { id: 'duplicate' });
     } catch (e) {
-      setError(e.message);
+      toast.error('Failed to duplicate form: ' + e.message, { id: 'duplicate' });
     }
   };
 
-  const deleteForm = async (id, title) => {
-    if (window.confirm(`Are you sure you want to delete "${title}" and all its submissions? This action cannot be undone.`)) {
-      try {
-        await api.delete(`/forms/${id}`);
-        setForms(prev => prev.filter(f => f._id !== id));
-      } catch (e) {
-        setError(e.message);
-      }
+  const deleteForm = async (form) => {
+    try {
+      toast.loading('Deleting form...', { id: 'delete' });
+      await api.delete(`/forms/${form._id}`);
+      setForms(prev => prev.filter(f => f._id !== form._id));
+      toast.success(`"${form.title}" deleted successfully!`, { id: 'delete' });
+    } catch (e) {
+      toast.error('Failed to delete form: ' + e.message, { id: 'delete' });
     }
   };
   useEffect(() => { load(); }, []);
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <div className="h-8 bg-gray-200 rounded animate-pulse w-64 mb-2"></div>
+            <div className="h-5 bg-gray-200 rounded animate-pulse w-96"></div>
+          </div>
+          <div className="h-10 bg-gray-200 rounded animate-pulse w-32"></div>
+        </div>
+        <TableSkeleton rows={5} columns={5} />
+      </div>
     </div>
   );
   
@@ -140,45 +156,51 @@ export default function FormsList() {
                         <div className="flex items-center justify-end space-x-2">
                           <Link 
                             to={`/forms/${f._id}/edit`} 
-                            className="text-gray-600 hover:text-blue-600 p-1 rounded transition-colors"
-                            title="Edit"
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                            title="Edit Form"
                           >
-                            <Edit3 size={16} />
+                            <Edit3 size={14} />
+                            <span>Edit</span>
                           </Link>
                           <Link 
                             to={`/forms/${f._id}/preview`} 
-                            className="text-gray-600 hover:text-green-600 p-1 rounded transition-colors"
-                            title="Preview"
+                            className="bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                            title="Preview Form"
                           >
-                            <Eye size={16} />
+                            <Eye size={14} />
+                            <span>Preview</span>
                           </Link>
                           <Link 
                             to={`/forms/${f._id}/analytics`} 
-                            className="text-gray-600 hover:text-purple-600 p-1 rounded transition-colors"
-                            title="Analytics"
+                            className="bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                            title="View Analytics"
                           >
-                            <BarChart3 size={16} />
+                            <BarChart3 size={14} />
+                            <span>Analytics</span>
                           </Link>
                           <Link 
                             to={`/forms/${f._id}/settings`} 
-                            className="text-gray-600 hover:text-orange-600 p-1 rounded transition-colors"
-                            title="Settings"
+                            className="bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                            title="Form Settings"
                           >
-                            <Settings size={16} />
+                            <Settings size={14} />
+                            <span>Settings</span>
                           </Link>
                           <button
-                            onClick={() => duplicateForm(f._id, f.title)}
-                            className="text-gray-600 hover:text-indigo-600 p-1 rounded transition-colors"
-                            title="Duplicate"
+                            onClick={() => setDuplicateModal({ isOpen: true, form: f })}
+                            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                            title="Duplicate Form"
                           >
-                            <Copy size={16} />
+                            <Copy size={14} />
+                            <span>Duplicate</span>
                           </button>
                           <button
-                            onClick={() => deleteForm(f._id, f.title)}
-                            className="text-gray-600 hover:text-red-600 p-1 rounded transition-colors"
-                            title="Delete"
+                            onClick={() => setDeleteModal({ isOpen: true, form: f })}
+                            className="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                            title="Delete Form"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
+                            <span>Delete</span>
                           </button>
                         </div>
                       </td>
@@ -190,6 +212,28 @@ export default function FormsList() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, form: null })}
+        onConfirm={() => deleteForm(deleteModal.form)}
+        title="Delete Form"
+        message={`Are you sure you want to delete "${deleteModal.form?.title}" and all its submissions? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmColor="red"
+      />
+
+      {/* Duplicate Confirmation Modal */}
+      <ConfirmModal
+        isOpen={duplicateModal.isOpen}
+        onClose={() => setDuplicateModal({ isOpen: false, form: null })}
+        onConfirm={() => duplicateForm(duplicateModal.form)}
+        title="Duplicate Form"
+        message={`Do you want to create a copy of "${duplicateModal.form?.title}"?`}
+        confirmText="Duplicate"
+        confirmColor="blue"
+      />
     </div>
   );
 }

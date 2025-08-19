@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ArrowLeft, TrendingUp, Users, Calendar, Download, BarChart3, PieChart, FileText } from 'lucide-react';
 import api from '../api';
 
@@ -17,6 +18,7 @@ export default function Analytics() {
 
   const loadData = async () => {
     try {
+      toast.loading('Loading analytics...', { id: 'load-analytics' });
       const [formRes, submissionsRes, analyticsRes] = await Promise.all([
         api.get(`/forms/${id}`),
         api.get(`/forms/${id}/submissions`),
@@ -26,7 +28,9 @@ export default function Analytics() {
       setForm(formRes.data);
       setSubmissions(submissionsRes.data);
       setAnalytics(analyticsRes.data);
+      toast.success('Analytics loaded successfully!', { id: 'load-analytics' });
     } catch (e) {
+      toast.error('Failed to load analytics: ' + e.message, { id: 'load-analytics' });
       setError(e.message);
     } finally {
       setLoading(false);
@@ -34,7 +38,12 @@ export default function Analytics() {
   };
 
   const exportToCSV = () => {
-    if (!submissions.length) return;
+    if (!submissions.length) {
+      toast.error('No submissions to export!');
+      return;
+    }
+
+    toast.loading('Preparing CSV export...', { id: 'export-csv' });
 
     // Prepare CSV headers
     const headers = ['Submission ID', 'Date', ...form.fields.map(f => f.label)];
@@ -63,6 +72,8 @@ export default function Analytics() {
     a.download = `${form.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_submissions.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+    
+    toast.success('CSV exported successfully!', { id: 'export-csv' });
   };
 
   const getFieldAnalytics = () => {
