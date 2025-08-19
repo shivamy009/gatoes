@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload } from 'lucide-react';
 import api from '../api';
 
 const fieldTemplates = [
-  { type: 'text', label: 'Text', placeholder: 'Enter text' },
-  { type: 'email', label: 'Email', placeholder: 'you@example.com' },
-  { type: 'textarea', label: 'Textarea', placeholder: 'Enter details' },
-  { type: 'select', label: 'Select', options: ['Option 1', 'Option 2'] },
-  { type: 'checkbox', label: 'Checkbox', options: ['Option A', 'Option B'] },
-  { type: 'radio', label: 'Radio', options: ['Yes', 'No'] },
-  { type: 'file', label: 'File Upload' },
+  { type: 'text', label: 'Text Input', icon: Type, placeholder: 'Enter text' },
+  { type: 'email', label: 'Email', icon: Mail, placeholder: 'you@example.com' },
+  { type: 'textarea', label: 'Text Area', icon: FileText, placeholder: 'Enter details' },
+  { type: 'select', label: 'Dropdown', icon: List, options: ['Option 1', 'Option 2'] },
+  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, options: ['Option A', 'Option B'] },
+  { type: 'radio', label: 'Radio Buttons', icon: Radio, options: ['Yes', 'No'] },
+  { type: 'file', label: 'File Upload', icon: Upload },
 ];
 
 export default function FormBuilder() {
@@ -20,9 +21,23 @@ export default function FormBuilder() {
   const [fields, setFields] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedField, setSelectedField] = useState(null);
+
+  useEffect(() => {
+    if (id) {
+      api.get(`/forms/${id}`).then(r => {
+        const form = r.data;
+        setTitle(form.title);
+        setDescription(form.description || '');
+        setFields(form.fields || []);
+      }).catch(e => setError(e.message));
+    }
+  }, [id]);
 
   const addField = (tpl) => {
-    setFields(prev => [...prev, { ...tpl, name: tpl.type + '_' + (prev.length + 1), required: false }]);
+    const newField = { ...tpl, name: tpl.type + '_' + (fields.length + 1), required: false };
+    setFields(prev => [...prev, newField]);
+    setSelectedField(fields.length);
   };
 
   const updateField = (index, patch) => {
@@ -31,6 +46,7 @@ export default function FormBuilder() {
 
   const removeField = (index) => {
     setFields(prev => prev.filter((_,i) => i!==index));
+    setSelectedField(null);
   };
 
   const moveField = (index, dir) => {
@@ -40,6 +56,7 @@ export default function FormBuilder() {
     const [item] = copy.splice(index,1);
     copy.splice(target,0,item);
     setFields(copy);
+    setSelectedField(target);
   };
 
   const save = async () => {
@@ -60,59 +77,246 @@ export default function FormBuilder() {
   };
 
   return (
-    <div className="flex h-screen">
-      <div className="w-56 border-r p-3 space-y-2 bg-gray-50">
-        <h2 className="font-semibold mb-2">Fields</h2>
-        {fieldTemplates.map(ft => (
-          <button key={ft.type} onClick={() => addField(ft)} className="block w-full text-left px-2 py-1 bg-white border rounded hover:bg-blue-50 text-sm">+ {ft.label}</button>
-        ))}
-        <div className="pt-4 space-y-2 text-sm">
-          <button onClick={save} className="w-full bg-blue-600 text-white py-1 rounded disabled:opacity-50" disabled={saving}>{saving? 'Saving...' : 'Save'}</button>
+    <div className="flex h-screen bg-gray-50">
+      {/* Left Sidebar - Field Types */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Form Elements</h2>
+          <p className="text-sm text-gray-600">Drag or click to add fields</p>
         </div>
-        {error && <div className="text-red-500 text-xs">{error}</div>}
-      </div>
-      <div className="flex-1 p-6 overflow-auto">
-        <div className="mb-4 space-y-2">
-          <input value={title} onChange={e=>setTitle(e.target.value)} className="border px-2 py-1 w-full font-semibold text-lg" />
-          <textarea value={description} onChange={e=>setDescription(e.target.value)} className="border px-2 py-1 w-full text-sm" placeholder="Description" />
-        </div>
-        <div className="space-y-4">
-          {fields.map((f,i) => (
-            <div key={i} className="border rounded p-3 bg-white shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <strong>{f.label}</strong>
-                <div className="space-x-1 text-xs">
-                  <button onClick={()=>moveField(i,-1)} className="px-2 py-0.5 border rounded">↑</button>
-                  <button onClick={()=>moveField(i,1)} className="px-2 py-0.5 border rounded">↓</button>
-                  <button onClick={()=>removeField(i)} className="px-2 py-0.5 border rounded text-red-600">X</button>
+        
+        <div className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {fieldTemplates.map(ft => {
+            const Icon = ft.icon;
+            return (
+              <button 
+                key={ft.type} 
+                onClick={() => addField(ft)} 
+                className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon size={20} className="text-gray-500 group-hover:text-blue-600" />
+                  <div>
+                    <div className="font-medium text-gray-900 text-sm">{ft.label}</div>
+                    <div className="text-xs text-gray-500">Click to add</div>
+                  </div>
                 </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="p-4 border-t border-gray-200 space-y-3">
+          <button 
+            onClick={save} 
+            disabled={saving}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          >
+            <Save size={16} />
+            {saving ? 'Saving...' : 'Save Form'}
+          </button>
+          
+          {id && (
+            <div className="grid grid-cols-2 gap-2">
+              <Link 
+                to={`/forms/${id}`} 
+                className="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+              >
+                <Eye size={14} />
+                Preview
+              </Link>
+              <Link 
+                to={`/forms/${id}/submissions`} 
+                className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+              >
+                <BarChart3 size={14} />
+                Data
+              </Link>
+            </div>
+          )}
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="text-sm text-red-800">{error}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex">
+        {/* Form Builder Canvas */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-2xl mx-auto">
+            {/* Form Header */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+              <input 
+                value={title} 
+                onChange={e=>setTitle(e.target.value)} 
+                className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+                placeholder="Form Title"
+              />
+              <textarea 
+                value={description} 
+                onChange={e=>setDescription(e.target.value)} 
+                className="w-full mt-2 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 resize-none"
+                placeholder="Add a description for your form"
+                rows={2}
+              />
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              {fields.map((f,i) => (
+                <div 
+                  key={i} 
+                  className={`bg-white rounded-lg shadow-sm border-2 transition-all ${
+                    selectedField === i ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setSelectedField(i)}
+                >
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{f.label}</div>
+                        <div className="text-sm text-gray-500">{f.type}</div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <button 
+                          onClick={(e) => {e.stopPropagation(); moveField(i,-1);}} 
+                          disabled={i === 0}
+                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                        >
+                          <ArrowUp size={16} />
+                        </button>
+                        <button 
+                          onClick={(e) => {e.stopPropagation(); moveField(i,1);}} 
+                          disabled={i === fields.length - 1}
+                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                        >
+                          <ArrowDown size={16} />
+                        </button>
+                        <button 
+                          onClick={(e) => {e.stopPropagation(); removeField(i);}} 
+                          className="p-1 text-red-400 hover:text-red-600"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Field Preview */}
+                    <div className="pointer-events-none">
+                      {f.type === 'text' && <input placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />}
+                      {f.type === 'email' && <input type="email" placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />}
+                      {f.type === 'textarea' && <textarea placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" rows={3} />}
+                      {f.type === 'select' && (
+                        <select className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50">
+                          <option>Select...</option>
+                          {f.options?.map(o => <option key={o}>{o}</option>)}
+                        </select>
+                      )}
+                      {f.type === 'checkbox' && (
+                        <div className="space-y-2">
+                          {f.options?.map(o => (
+                            <label key={o} className="flex items-center space-x-2">
+                              <input type="checkbox" className="rounded" />
+                              <span>{o}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {f.type === 'radio' && (
+                        <div className="space-y-2">
+                          {f.options?.map(o => (
+                            <label key={o} className="flex items-center space-x-2">
+                              <input type="radio" name={`preview_${i}`} />
+                              <span>{o}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {f.type === 'file' && <input type="file" className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {fields.length === 0 && (
+                <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                  <Plus size={48} className="mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No fields yet</h3>
+                  <p className="text-gray-500">Add fields from the left panel to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Field Properties */}
+        {selectedField !== null && fields[selectedField] && (
+          <div className="w-80 bg-white border-l border-gray-200 p-6">
+            <div className="flex items-center space-x-2 mb-6">
+              <Settings size={20} className="text-gray-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Field Settings</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Field Name</label>
+                <input 
+                  value={fields[selectedField].name} 
+                  onChange={e=>updateField(selectedField,{name:e.target.value})} 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <label className="space-y-1">Name
-                  <input value={f.name} onChange={e=>updateField(i,{name:e.target.value})} className="border px-1 py-0.5 w-full" />
-                </label>
-                <label className="space-y-1">Label
-                  <input value={f.label} onChange={e=>updateField(i,{label:e.target.value})} className="border px-1 py-0.5 w-full" />
-                </label>
-                {['text','email','textarea'].includes(f.type) && (
-                  <label className="space-y-1 col-span-2">Placeholder
-                    <input value={f.placeholder||''} onChange={e=>updateField(i,{placeholder:e.target.value})} className="border px-1 py-0.5 w-full" />
-                  </label>
-                )}
-                {['select','checkbox','radio'].includes(f.type) && (
-                  <label className="space-y-1 col-span-2">Options (comma separated)
-                    <input value={(f.options||[]).join(',')} onChange={e=>updateField(i,{options:e.target.value.split(',').map(s=>s.trim())})} className="border px-1 py-0.5 w-full" />
-                  </label>
-                )}
-                <label className="flex items-center space-x-1">
-                  <input type="checkbox" checked={f.required} onChange={e=>updateField(i,{required:e.target.checked})} />
-                  <span>Required</span>
-                </label>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                <input 
+                  value={fields[selectedField].label} 
+                  onChange={e=>updateField(selectedField,{label:e.target.value})} 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+              
+              {['text','email','textarea'].includes(fields[selectedField].type) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Placeholder</label>
+                  <input 
+                    value={fields[selectedField].placeholder||''} 
+                    onChange={e=>updateField(selectedField,{placeholder:e.target.value})} 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+              )}
+              
+              {['select','checkbox','radio'].includes(fields[selectedField].type) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+                  <textarea
+                    value={(fields[selectedField].options||[]).join('\n')} 
+                    onChange={e=>updateField(selectedField,{options:e.target.value.split('\n').filter(s=>s.trim())})} 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    rows={4}
+                    placeholder="One option per line"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="required"
+                  checked={fields[selectedField].required} 
+                  onChange={e=>updateField(selectedField,{required:e.target.checked})}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="required" className="text-sm font-medium text-gray-700">Required field</label>
               </div>
             </div>
-          ))}
-          {fields.length === 0 && <div className="text-sm text-gray-500">Add fields from the left panel.</div>}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

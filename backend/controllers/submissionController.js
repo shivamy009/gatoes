@@ -14,6 +14,7 @@ export const submitForm = async (req, res) => {
       mimeType: f.mimetype,
       path: f.path,
       size: f.size,
+      url: f.filename ? `/uploads/${f.filename}` : undefined,
     }));
     const submission = await Submission.create({
       form: form._id,
@@ -32,6 +33,17 @@ export const getSubmissions = async (req, res) => {
   try {
     const submissions = await Submission.find({ form: req.params.id }).sort({ createdAt: -1 });
     res.json(submissions);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+export const getSubmission = async (req, res) => {
+  try {
+    const { id, submissionId } = req.params;
+  const submission = await Submission.findOne({ _id: submissionId, form: id });
+  if (!submission) return res.status(404).json({ error: 'Submission not found' });
+  res.json(submission);
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
