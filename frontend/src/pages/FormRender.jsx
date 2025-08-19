@@ -51,15 +51,21 @@ export default function FormRender() {
           
           try {
             const uploadResult = await uploadToCloudinary(file);
+            // Store file data for backend processing
             data[`file_${field.name}`] = uploadResult.url;
             data[`filename_${field.name}`] = uploadResult.originalName;
             data[`filesize_${field.name}`] = uploadResult.size;
             data[`filetype_${field.name}`] = uploadResult.mimeType;
+            // Store filename in the original field name for display in responses
+            data[field.name] = uploadResult.originalName;
             setUploadProgress(prev => ({ ...prev, [field.name]: 'completed' }));
           } catch (uploadError) {
             setUploadProgress(prev => ({ ...prev, [field.name]: 'failed' }));
             throw new Error(`File upload failed: ${uploadError.message}`);
           }
+        } else if (field.required) {
+          // If file field is required but no file was selected
+          throw new Error(`${field.label} is required`);
         }
       }
       
@@ -169,6 +175,7 @@ export default function FormRender() {
                     <input 
                       type="file" 
                       name={f.name} 
+                      required={f.required}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                     {uploadProgress[f.name] && (
