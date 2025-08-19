@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload, ArrowLeft, Trash2 } from 'lucide-react';
+import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload, ArrowLeft, Trash2, Hash } from 'lucide-react';
 import api from '../api';
 
 const fieldTemplates = [
   { type: 'text', label: 'Text Input', icon: Type, placeholder: 'Enter text' },
   { type: 'email', label: 'Email', icon: Mail, placeholder: 'you@example.com' },
+  { type: 'number', label: 'Number', icon: Hash, placeholder: 'Enter number' },
   { type: 'textarea', label: 'Text Area', icon: FileText, placeholder: 'Enter details' },
   { type: 'select', label: 'Dropdown', icon: List, options: ['Option 1', 'Option 2'] },
   { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, options: ['Option A', 'Option B'] },
@@ -139,20 +140,30 @@ export default function FormBuilder() {
           {id && (
             <div className="grid grid-cols-2 gap-2">
               <Link 
-                to={`/forms/${id}`} 
+                to={`/forms/${id}/preview`} 
                 className="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
               >
                 <Eye size={14} />
                 Preview
               </Link>
               <Link 
-                to={`/forms/${id}/submissions`} 
+                to={`/forms/${id}/analytics`} 
                 className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
               >
                 <BarChart3 size={14} />
-                Data
+                Analytics
               </Link>
             </div>
+          )}
+
+          {id && (
+            <Link 
+              to={`/forms/${id}/settings`} 
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+            >
+              <Settings size={14} />
+              Form Settings
+            </Link>
           )}
 
           {id && (
@@ -245,6 +256,7 @@ export default function FormBuilder() {
                     <div className="pointer-events-none">
                       {f.type === 'text' && <input placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />}
                       {f.type === 'email' && <input type="email" placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />}
+                      {f.type === 'number' && <input type="number" placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />}
                       {f.type === 'textarea' && <textarea placeholder={f.placeholder} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" rows={3} />}
                       {f.type === 'select' && (
                         <select className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50">
@@ -316,7 +328,7 @@ export default function FormBuilder() {
                 />
               </div>
               
-              {['text','email','textarea'].includes(fields[selectedField].type) && (
+              {['text','email','number','textarea'].includes(fields[selectedField].type) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Placeholder</label>
                   <input 

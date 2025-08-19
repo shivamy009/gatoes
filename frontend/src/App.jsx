@@ -4,6 +4,9 @@ import { Home, FileText, Plus, BarChart3 } from 'lucide-react';
 import FormsList from './pages/FormsList.jsx';
 import FormBuilder from './pages/FormBuilder.jsx';
 import FormRender from './pages/FormRender.jsx';
+import FormPreview from './pages/FormPreview.jsx';
+import FormSettings from './pages/FormSettings.jsx';
+import Analytics from './pages/Analytics.jsx';
 import Submissions from './pages/Submissions.jsx';
 import SubmissionDetail from './pages/SubmissionDetail.jsx';
 
@@ -91,6 +94,9 @@ export default function App() {
           <Route path="/" element={<FormsList />} />
           <Route path="/forms/new" element={<FormBuilder />} />
           <Route path="/forms/:id/edit" element={<FormBuilder />} />
+          <Route path="/forms/:id/preview" element={<FormPreview />} />
+          <Route path="/forms/:id/settings" element={<FormSettings />} />
+          <Route path="/forms/:id/analytics" element={<Analytics />} />
           <Route path="/forms/:id" element={<FormRender />} />
           <Route path="/forms/:id/submissions" element={<Submissions />} />
           <Route path="/forms/:id/submissions/:submissionId" element={<SubmissionDetail />} />

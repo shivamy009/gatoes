@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const FieldSchema = new mongoose.Schema({
-  type: { type: String, required: true }, // text, email, select, checkbox, radio, textarea, file
+  type: { type: String, required: true }, // text, email, number, select, checkbox, radio, textarea, file
   label: { type: String, required: true },
   name: { type: String, required: true },
   placeholder: String,
@@ -11,6 +11,8 @@ const FieldSchema = new mongoose.Schema({
     pattern: String,
     minLength: Number,
     maxLength: Number,
+    min: Number, // for number fields
+    max: Number, // for number fields
   }
 }, { _id: false });
 
@@ -22,6 +24,9 @@ const FormSchema = new mongoose.Schema({
   thankYouMessage: { type: String, default: 'Thank you for your submission!' },
   submissionLimit: Number,
   submissionsCount: { type: Number, default: 0 },
+  allowDuplicates: { type: Boolean, default: true },
+  collectEmails: { type: Boolean, default: false },
+  requireLogin: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default mongoose.model('Form', FormSchema);

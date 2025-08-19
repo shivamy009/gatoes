@@ -5,9 +5,18 @@ export const submitForm = async (req, res) => {
   try {
     const form = await Form.findById(req.params.id);
     if (!form) return res.status(404).json({ error: 'Form not found' });
+    
+    // Check if form is published
+    if (form.status !== 'published') {
+      return res.status(403).json({ error: 'Form is not published' });
+    }
+    
     if (form.submissionLimit && form.submissionsCount >= form.submissionLimit) {
       return res.status(403).json({ error: 'Submission limit reached' });
     }
+    
+    // Attach form to request for validation middleware
+    req.form = form;
     
     // Extract file URLs from request body (uploaded via frontend to Cloudinary)
     const files = [];
@@ -28,6 +37,7 @@ export const submitForm = async (req, res) => {
       form: form._id,
       data: req.body,
       files,
+      submittedAt: new Date(),
     });
     form.submissionsCount += 1;
     await form.save();

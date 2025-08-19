@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical, Trash2 } from 'lucide-react';
+import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical, Trash2, Copy, Settings, ExternalLink } from 'lucide-react';
 import api from '../api';
 
 export default function FormsList() {
@@ -17,6 +17,15 @@ export default function FormsList() {
       setError(e.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const duplicateForm = async (id, title) => {
+    try {
+      const response = await api.post(`/forms/${id}/duplicate`);
+      setForms(prev => [response.data, ...prev]);
+    } catch (e) {
+      setError(e.message);
     }
   };
 
@@ -137,19 +146,33 @@ export default function FormsList() {
                             <Edit3 size={16} />
                           </Link>
                           <Link 
-                            to={`/forms/${f._id}`} 
+                            to={`/forms/${f._id}/preview`} 
                             className="text-gray-600 hover:text-green-600 p-1 rounded transition-colors"
                             title="Preview"
                           >
                             <Eye size={16} />
                           </Link>
                           <Link 
-                            to={`/forms/${f._id}/submissions`} 
+                            to={`/forms/${f._id}/analytics`} 
                             className="text-gray-600 hover:text-purple-600 p-1 rounded transition-colors"
-                            title="Submissions"
+                            title="Analytics"
                           >
                             <BarChart3 size={16} />
                           </Link>
+                          <Link 
+                            to={`/forms/${f._id}/settings`} 
+                            className="text-gray-600 hover:text-orange-600 p-1 rounded transition-colors"
+                            title="Settings"
+                          >
+                            <Settings size={16} />
+                          </Link>
+                          <button
+                            onClick={() => duplicateForm(f._id, f.title)}
+                            className="text-gray-600 hover:text-indigo-600 p-1 rounded transition-colors"
+                            title="Duplicate"
+                          >
+                            <Copy size={16} />
+                          </button>
                           <button
                             onClick={() => deleteForm(f._id, f.title)}
                             className="text-gray-600 hover:text-red-600 p-1 rounded transition-colors"
