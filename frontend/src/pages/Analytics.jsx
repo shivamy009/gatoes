@@ -157,38 +157,38 @@ export default function Analytics() {
   const submissionTrend = getSubmissionTrend();
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center space-x-4 mb-4">
             <Link 
               to={`/forms/${id}/edit`} 
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft size={20} />
-              <span>Back to Builder</span>
+              <span className="hidden sm:inline">Back to Builder</span>
             </Link>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{form?.title} - Analytics</h1>
-                <p className="text-gray-600">{form?.description || 'Form performance and response analytics'}</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{form?.title} - Analytics</h1>
+                <p className="text-sm sm:text-base text-gray-600">{form?.description || 'Form performance and response analytics'}</p>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                 <button 
                   onClick={exportToCSV}
                   disabled={!submissions.length}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors text-sm"
                 >
                   <Download size={16} />
                   <span>Export CSV</span>
                 </button>
                 <Link 
                   to={`/forms/${id}/submissions`} 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors text-sm"
                 >
                   <FileText size={16} />
                   <span>View Submissions</span>
@@ -199,38 +199,38 @@ export default function Analytics() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Submissions</p>
-                <p className="text-3xl font-bold text-gray-900">{submissions.length}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{submissions.length}</p>
               </div>
-              <div className="bg-blue-100 rounded-lg p-3">
-                <Users size={24} className="text-blue-600" />
+              <div className="bg-blue-100 rounded-lg p-2 sm:p-3">
+                <Users size={20} sm:size={24} className="text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. Daily Submissions</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {(submissionTrend.reduce((sum, day) => sum + day.count, 0) / 7).toFixed(1)}
                 </p>
               </div>
-              <div className="bg-green-100 rounded-lg p-3">
-                <TrendingUp size={24} className="text-green-600" />
+              <div className="bg-green-100 rounded-lg p-2 sm:p-3">
+                <TrendingUp size={20} sm:size={24} className="text-green-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Form Created</p>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-base sm:text-lg font-semibold text-gray-900">
                   {new Date(form.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -238,21 +238,21 @@ export default function Analytics() {
                   })}
                 </p>
               </div>
-              <div className="bg-purple-100 rounded-lg p-3">
-                <Calendar size={24} className="text-purple-600" />
+              <div className="bg-purple-100 rounded-lg p-2 sm:p-3">
+                <Calendar size={20} sm:size={24} className="text-purple-600" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Submission Trend */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center space-x-2">
-            <BarChart3 size={20} />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center space-x-2">
+            <BarChart3 size={18} sm:size={20} />
             <span>7-Day Submission Trend</span>
           </h2>
           
-          <div className="flex items-end space-x-2 h-32">
+          <div className="flex items-end space-x-1 sm:space-x-2 h-24 sm:h-32">
             {submissionTrend.map((day, index) => {
               const maxCount = Math.max(...submissionTrend.map(d => d.count), 1);
               const height = (day.count / maxCount) * 100;
@@ -264,7 +264,7 @@ export default function Analytics() {
                     style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '2px' }}
                     title={`${day.count} submissions on ${day.label}`}
                   />
-                  <div className="text-xs text-gray-500 mt-2 text-center">{day.label}</div>
+                  <div className="text-xs text-gray-500 mt-1 sm:mt-2 text-center">{day.label}</div>
                   <div className="text-xs font-medium text-gray-700">{day.count}</div>
                 </div>
               );
@@ -273,39 +273,39 @@ export default function Analytics() {
         </div>
 
         {/* Field Analytics */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
-            <PieChart size={20} />
+        <div className="space-y-4 sm:space-y-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center space-x-2">
+            <PieChart size={18} sm:size={20} />
             <span>Field Response Analytics</span>
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {form.fields.map(field => {
               const fieldData = fieldAnalytics[field.name];
               
               return (
-                <div key={field.name} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <div className="mb-4">
-                    <h3 className="font-semibold text-gray-900">{field.label}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{field.type} field</p>
+                <div key={field.name} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900">{field.label}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 capitalize">{field.type} field</p>
                   </div>
 
                   {fieldData?.type === 'categorical' ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {Object.entries(fieldData.data).map(([option, count]) => {
                         const percentage = ((count / submissions.length) * 100).toFixed(1);
                         
                         return (
                           <div key={option} className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700 truncate flex-1 mr-3">{option}</span>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-20 bg-gray-200 rounded-full h-2">
+                            <span className="text-xs sm:text-sm text-gray-700 truncate flex-1 mr-2 sm:mr-3">{option}</span>
+                            <div className="flex items-center space-x-1 sm:space-x-2">
+                              <div className="w-16 sm:w-20 bg-gray-200 rounded-full h-1.5 sm:h-2">
                                 <div 
-                                  className="bg-blue-500 h-2 rounded-full transition-all"
+                                  className="bg-blue-500 h-1.5 sm:h-2 rounded-full transition-all"
                                   style={{ width: `${percentage}%` }}
                                 />
                               </div>
-                              <span className="text-sm font-medium text-gray-900 w-12 text-right">
+                              <span className="text-xs sm:text-sm font-medium text-gray-900 w-10 sm:w-12 text-right">
                                 {count} ({percentage}%)
                               </span>
                             </div>
@@ -314,18 +314,18 @@ export default function Analytics() {
                       })}
                     </div>
                   ) : fieldData?.type === 'numeric' ? (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
+                    <div className="space-y-1 sm:space-y-2">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-600">Response Rate:</span>
                         <span className="font-medium text-gray-900">{fieldData.responseRate}%</span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-600">Total Responses:</span>
                         <span className="font-medium text-gray-900">{fieldData.totalResponses}</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-500 italic">No data available</div>
+                    <div className="text-xs sm:text-sm text-gray-500 italic">No data available</div>
                   )}
                 </div>
               );

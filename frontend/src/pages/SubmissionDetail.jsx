@@ -60,36 +60,37 @@ export default function SubmissionDetail(){
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center space-x-4 mb-4 sm:mb-6">
             <Link 
               to={`/forms/${id}/submissions`} 
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft size={20} />
-              <span>Back to Submissions</span>
+              <span className="hidden sm:inline">Back to Submissions</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4">
               <div className="flex items-center space-x-3">
                 <div className="bg-blue-100 rounded-lg p-2">
                   <FileText size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Submission Details</h1>
-                  <p className="text-gray-600">{form?.title}</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Submission Details</h1>
+                  <p className="text-sm sm:text-base text-gray-600">{form?.title}</p>
                 </div>
               </div>
-              <div className="flex space-x-2">
-                <button className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <button className="bg-green-50 hover:bg-green-100 text-green-700 px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base">
                   <Download size={16} />
                   <span>Export</span>
                 </button>
                 <button 
                   onClick={deleteSubmission}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  className="bg-red-50 hover:bg-red-100 text-red-700 px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors text-sm sm:text-base"
                 >
                   <Trash2 size={16} />
                   <span>Delete</span>
@@ -97,16 +98,16 @@ export default function SubmissionDetail(){
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-gray-200">
               <div className="flex items-center space-x-2">
                 <User size={16} className="text-gray-400" />
-                <span className="text-sm text-gray-600">ID:</span>
-                <span className="font-mono text-sm text-gray-900">{submission._id.slice(-8)}</span>
+                <span className="text-xs sm:text-sm text-gray-600">ID:</span>
+                <span className="font-mono text-xs sm:text-sm text-gray-900">{submission._id.slice(-8)}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar size={16} className="text-gray-400" />
-                <span className="text-sm text-gray-600">Submitted:</span>
-                <span className="text-sm text-gray-900">
+                <span className="text-xs sm:text-sm text-gray-600">Submitted:</span>
+                <span className="text-xs sm:text-sm text-gray-900">
                   {new Date(submission.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -119,8 +120,8 @@ export default function SubmissionDetail(){
               {submission.files?.length > 0 && (
                 <div className="flex items-center space-x-2">
                   <Paperclip size={16} className="text-gray-400" />
-                  <span className="text-sm text-gray-600">Files:</span>
-                  <span className="text-sm text-gray-900">{submission.files.length}</span>
+                  <span className="text-xs sm:text-sm text-gray-600">Files:</span>
+                  <span className="text-xs sm:text-sm text-gray-900">{submission.files.length}</span>
                 </div>
               )}
             </div>
@@ -128,11 +129,11 @@ export default function SubmissionDetail(){
         </div>
 
         {/* Response Data */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Form Responses</h2>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Form Responses</h2>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {form?.fields.map(f => {
                 const val = submission.data[f.name];
                 let display = '';
@@ -146,7 +147,7 @@ export default function SubmissionDetail(){
                 }
 
                 return (
-                  <div key={f.name} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                  <div key={f.name} className="border-b border-gray-100 pb-3 sm:pb-4 last:border-b-0 last:pb-0">
                     <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-4">
                       <div className="sm:w-1/3">
                         <div className="text-sm font-medium text-gray-900">{f.label}</div>
@@ -154,7 +155,7 @@ export default function SubmissionDetail(){
                         {f.required && <div className="text-xs text-red-500">Required</div>}
                       </div>
                       <div className="sm:w-2/3">
-                        <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
                           <div className="text-sm text-gray-900 break-words">
                             {display === '—' ? (
                               <span className="text-gray-400 italic">No response</span>
@@ -173,18 +174,18 @@ export default function SubmissionDetail(){
 
           {/* Files Section */}
           {submission.files?.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Attached Files</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Attached Files</h2>
               
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {submission.files.map((f, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg space-y-2 sm:space-y-0">
                     <div className="flex items-center space-x-3">
                       <div className="bg-blue-100 rounded-lg p-2">
                         <Paperclip size={16} className="text-blue-600" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 break-words">
                           {f.originalName}
                         </div>
                         <div className="text-xs text-gray-500">
@@ -197,7 +198,7 @@ export default function SubmissionDetail(){
                         href={f.url} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors text-center sm:text-left"
                       >
                         Download
                       </a>

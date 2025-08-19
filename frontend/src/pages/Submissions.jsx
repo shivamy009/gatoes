@@ -70,27 +70,27 @@ export default function Submissions() {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center space-x-4 mb-4">
             <Link 
               to={`/forms/${id}/edit`} 
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft size={20} />
-              <span>Back to Builder</span>
+              <span className="hidden sm:inline">Back to Builder</span>
             </Link>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{form?.title} - Submissions</h1>
-                <p className="text-gray-600">{form?.description || 'View and manage form submissions'}</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{form?.title} - Submissions</h1>
+                <p className="text-sm sm:text-base text-gray-600">{form?.description || 'View and manage form submissions'}</p>
               </div>
-              <div className="flex items-center space-x-4 text-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm">
                 <div className="bg-blue-50 rounded-lg px-3 py-2 flex items-center space-x-2">
                   <Users size={16} className="text-blue-600" />
                   <span className="font-medium text-blue-900">{items.length} Total</span>
@@ -120,20 +120,20 @@ export default function Submissions() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Submission ID
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Submitted
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Preview
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -141,12 +141,12 @@ export default function Submissions() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {items.map(s => (
                     <tr key={s._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-4 lg:px-6 py-4">
                         <div className="font-mono text-sm text-gray-900">
                           {s._id.slice(-8)}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 lg:px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <Calendar size={16} className="text-gray-400" />
                           <span className="text-sm text-gray-900">
@@ -160,7 +160,7 @@ export default function Submissions() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 lg:px-6 py-4">
                         <div className="text-sm text-gray-600 max-w-xs truncate">
                           {Object.entries(s.data).slice(0, 2).map(([key, value]) => (
                             <span key={key} className="mr-2">
@@ -170,23 +170,23 @@ export default function Submissions() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 lg:px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Link 
                             to={`/forms/${id}/submissions/${s._id}`}
-                            className="inline-flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors"
+                            className="inline-flex items-center px-2 lg:px-3 py-1 text-xs lg:text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors"
                             title="View Details"
                           >
-                            <Eye size={14} className="mr-1" />
-                            View
+                            <Eye size={12} lg:size={14} className="mr-1" />
+                            <span className="hidden lg:inline">View</span>
                           </Link>
                           <button
                             onClick={() => openDeleteModal(s)}
-                            className="inline-flex items-center px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors"
+                            className="inline-flex items-center px-2 lg:px-3 py-1 text-xs lg:text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors"
                             title="Delete"
                           >
-                            <Trash2 size={14} className="mr-1" />
-                            Delete
+                            <Trash2 size={12} lg:size={14} className="mr-1" />
+                            <span className="hidden lg:inline">Delete</span>
                           </button>
                         </div>
                       </td>
@@ -194,6 +194,55 @@ export default function Submissions() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="sm:hidden space-y-4 p-4">
+              {items.map(s => (
+                <div key={s._id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-mono text-sm text-gray-900">
+                      ID: {s._id.slice(-8)}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Link 
+                        to={`/forms/${id}/submissions/${s._id}`}
+                        className="inline-flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors"
+                      >
+                        <Eye size={12} className="mr-1" />
+                        View
+                      </Link>
+                      <button
+                        onClick={() => openDeleteModal(s)}
+                        className="inline-flex items-center px-3 py-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors"
+                      >
+                        <Trash2 size={12} className="mr-1" />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 mb-2">
+                    <Calendar size={14} className="text-gray-400" />
+                    <span>
+                      {new Date(s.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {Object.entries(s.data).slice(0, 2).map(([key, value]) => (
+                      <div key={key} className="truncate">
+                        <span className="font-medium">{key}:</span> {String(value).slice(0, 50)}
+                        {String(value).length > 50 ? '...' : ''}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
