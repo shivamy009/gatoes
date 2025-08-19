@@ -6,6 +6,13 @@ export const validateFormFields = (req, res, next) => {
     return res.status(400).json({ error: 'Fields must be an array' });
   }
 
+  // Check if at least one field is present
+  if (fields.length === 0) {
+    return res.status(400).json({ 
+      error: 'Form must have at least one field to be saved' 
+    });
+  }
+
   for (const field of fields) {
     // Check required properties
     if (!field.type || !field.label || !field.name) {

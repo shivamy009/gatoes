@@ -41,6 +41,11 @@ export default function FormBuilder() {
           setError(e.message);
         });
     }
+    
+    // Cleanup function to dismiss any remaining toasts when component unmounts
+    return () => {
+      toast.dismiss();
+    };
   }, [id]);
 
   const addField = (tpl) => {
@@ -74,6 +79,12 @@ export default function FormBuilder() {
       toast.error('Please enter a form title');
       return;
     }
+    
+    if (fields.length === 0) {
+      toast.error('Please add at least one field to the form');
+      return;
+    }
+    
     setSaving(true);
     const payload = { title: title.trim(), description: description.trim(), fields };
     try {
