@@ -7,9 +7,9 @@ const SubmissionSchema = new mongoose.Schema({
     fieldName: String,
     originalName: String,
     mimeType: String,
-    path: String,
-    size: Number,
     url: String,
+    size: Number,
+    publicId: String, // Cloudinary public ID for deletion
   }]
 }, { timestamps: true });
 

@@ -8,14 +8,22 @@ export const submitForm = async (req, res) => {
     if (form.submissionLimit && form.submissionsCount >= form.submissionLimit) {
       return res.status(403).json({ error: 'Submission limit reached' });
     }
-    const files = (req.files || []).map(f => ({
-      fieldName: f.fieldname,
-      originalName: f.originalname,
-      mimeType: f.mimetype,
-      path: f.path,
-      size: f.size,
-      url: f.filename ? `/uploads/${f.filename}` : undefined,
-    }));
+    
+    // Extract file URLs from request body (uploaded via frontend to Cloudinary)
+    const files = [];
+    Object.keys(req.body).forEach(key => {
+      if (key.startsWith('file_') && req.body[key]) {
+        const fieldName = key.replace('file_', '');
+        files.push({
+          fieldName,
+          originalName: req.body[`filename_${fieldName}`] || 'uploaded_file',
+          url: req.body[key],
+          size: parseInt(req.body[`filesize_${fieldName}`]) || 0,
+          mimeType: req.body[`filetype_${fieldName}`] || 'application/octet-stream',
+        });
+      }
+    });
+
     const submission = await Submission.create({
       form: form._id,
       data: req.body,

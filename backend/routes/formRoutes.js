@@ -10,7 +10,7 @@ router.route('/').post(createForm).get(getForms);
 router.route('/:id').get(getForm).put(updateForm).delete(deleteForm);
 router.post('/:id/duplicate', duplicateForm);
 router.get('/:id/analytics', analytics);
-router.post('/:id/submissions', submissionLimiter, upload.array('files'), submitForm);
+router.post('/:id/submissions', submissionLimiter, submitForm);
 router.get('/:id/submissions', getSubmissions);
 router.get('/:id/submissions/:submissionId', getSubmission);
 router.delete('/:id/submissions/:submissionId', deleteSubmission);

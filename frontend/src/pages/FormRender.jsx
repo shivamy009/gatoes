@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FileText, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileText, Send, CheckCircle, AlertCircle, Upload } from 'lucide-react';
 import api from '../api';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
 export default function FormRender() {
   const { id } = useParams();
@@ -9,6 +10,7 @@ export default function FormRender() {
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
 
   useEffect(() => {
     api.get(`/forms/${id}`).then(r => { setForm(r.data); setStatus('ready'); }).catch(e => { setStatus('error'); });
@@ -17,14 +19,57 @@ export default function FormRender() {
   const submit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    const fd = new FormData(e.target);
+    
     try {
-      const { data } = await api.post(`/forms/${id}/submissions`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      setMessage({ type: 'success', text: data.message });
+      const formData = new FormData(e.target);
+      const data = {};
+      
+      // Handle regular form fields
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          continue; // Skip files, handle them separately
+        }
+        if (data[key]) {
+          // Handle multiple values (checkboxes)
+          if (Array.isArray(data[key])) {
+            data[key].push(value);
+          } else {
+            data[key] = [data[key], value];
+          }
+        } else {
+          data[key] = value;
+        }
+      }
+      
+      // Handle file uploads to Cloudinary
+      const fileFields = form.fields.filter(f => f.type === 'file');
+      for (const field of fileFields) {
+        const fileInput = e.target.querySelector(`input[name="${field.name}"]`);
+        if (fileInput && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          setUploadProgress(prev => ({ ...prev, [field.name]: 'uploading' }));
+          
+          try {
+            const uploadResult = await uploadToCloudinary(file);
+            data[`file_${field.name}`] = uploadResult.url;
+            data[`filename_${field.name}`] = uploadResult.originalName;
+            data[`filesize_${field.name}`] = uploadResult.size;
+            data[`filetype_${field.name}`] = uploadResult.mimeType;
+            setUploadProgress(prev => ({ ...prev, [field.name]: 'completed' }));
+          } catch (uploadError) {
+            setUploadProgress(prev => ({ ...prev, [field.name]: 'failed' }));
+            throw new Error(`File upload failed: ${uploadError.message}`);
+          }
+        }
+      }
+      
+      const response = await api.post(`/forms/${id}/submissions`, data);
+      setMessage({ type: 'success', text: response.data.message });
     } catch (e) {
       setMessage({ type: 'error', text: e.response?.data?.error || e.message });
     } finally {
       setSubmitting(false);
+      setUploadProgress({});
     }
   };
 
@@ -126,6 +171,28 @@ export default function FormRender() {
                       name={f.name} 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
+                    {uploadProgress[f.name] && (
+                      <div className="mt-2 text-sm">
+                        {uploadProgress[f.name] === 'uploading' && (
+                          <div className="flex items-center space-x-2 text-blue-600">
+                            <Upload size={16} className="animate-pulse" />
+                            <span>Uploading...</span>
+                          </div>
+                        )}
+                        {uploadProgress[f.name] === 'completed' && (
+                          <div className="flex items-center space-x-2 text-green-600">
+                            <CheckCircle size={16} />
+                            <span>Upload completed</span>
+                          </div>
+                        )}
+                        {uploadProgress[f.name] === 'failed' && (
+                          <div className="flex items-center space-x-2 text-red-600">
+                            <AlertCircle size={16} />
+                            <span>Upload failed</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
                 

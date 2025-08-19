@@ -173,29 +173,35 @@ export default function FormBuilder() {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex">
-        {/* Form Builder Canvas */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="max-w-2xl mx-auto">
-            {/* Form Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <input 
-                value={title} 
-                onChange={e=>setTitle(e.target.value)} 
-                className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
-                placeholder="Form Title"
-              />
-              <textarea 
-                value={description} 
-                onChange={e=>setDescription(e.target.value)} 
-                className="w-full mt-2 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 resize-none"
-                placeholder="Add a description for your form"
-                rows={2}
-              />
-            </div>
-
-            {/* Form Fields */}
+        {/* Main Content Area */}
+        <div className="flex-1 flex">
+          {/* Form Builder Canvas */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-2xl mx-auto">
+              {/* Form Header */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Form Title</label>
+                    <input 
+                      value={title} 
+                      onChange={e=>setTitle(e.target.value)} 
+                      className="w-full text-2xl font-bold text-gray-900 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter form title"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                    <textarea 
+                      value={description} 
+                      onChange={e=>setDescription(e.target.value)} 
+                      className="w-full text-gray-600 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Add a description for your form"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>            {/* Form Fields */}
             <div className="space-y-4">
               {fields.map((f,i) => (
                 <div 
