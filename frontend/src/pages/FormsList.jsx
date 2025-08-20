@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical, Trash2, Copy, Settings, ExternalLink, Menu, X } from 'lucide-react';
+import { Plus, FileText, Eye, BarChart3, Edit3, MoreVertical, Trash2, Copy, Settings, ExternalLink, Menu, X, TrendingUp, Users, CheckCircle, Clock } from 'lucide-react';
 import { TableSkeleton } from '../components/Skeleton';
 import { ConfirmModal } from '../components/Modal';
 import api from '../api';
@@ -13,11 +13,20 @@ export default function FormsList() {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, form: null });
   const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, form: null });
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalForms: 0,
+    publishedForms: 0,
+    draftForms: 0,
+    totalSubmissions: 0,
+    thisWeekForms: 0,
+    thisWeekSubmissions: 0
+  });
 
   const load = async () => {
     try {
       const { data } = await api.get('/forms');
       setForms(data);
+      calculateDashboardStats(data);
     } catch (e) {
       toast.error('Failed to load forms: ' + e.message);
       setError(e.message);
@@ -26,11 +35,29 @@ export default function FormsList() {
     }
   };
 
+  const calculateDashboardStats = (formsData) => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const stats = {
+      totalForms: formsData.length,
+      publishedForms: formsData.filter(f => f.status === 'published').length,
+      draftForms: formsData.filter(f => f.status === 'draft' || !f.status).length, // Include undefined status as draft
+      totalSubmissions: formsData.reduce((sum, f) => sum + (f.submissionsCount || 0), 0),
+      thisWeekForms: formsData.filter(f => new Date(f.createdAt) >= oneWeekAgo).length,
+      thisWeekSubmissions: 0 // This would need separate API call for accurate data
+    };
+
+    setDashboardStats(stats);
+  };
+
   const duplicateForm = async (form) => {
     try {
       toast.loading('Duplicating form...', { id: 'duplicate' });
       const response = await api.post(`/forms/${form._id}/duplicate`);
-      setForms(prev => [response.data, ...prev]);
+      const newForms = [response.data, ...forms];
+      setForms(newForms);
+      calculateDashboardStats(newForms);
       toast.success(`"${form.title}" duplicated successfully!`, { id: 'duplicate' });
     } catch (e) {
       toast.error('Failed to duplicate form: ' + e.message, { id: 'duplicate' });
@@ -41,7 +68,9 @@ export default function FormsList() {
     try {
       toast.loading('Deleting form...', { id: 'delete' });
       await api.delete(`/forms/${form._id}`);
-      setForms(prev => prev.filter(f => f._id !== form._id));
+      const newForms = forms.filter(f => f._id !== form._id);
+      setForms(newForms);
+      calculateDashboardStats(newForms);
       toast.success(`"${form.title}" deleted successfully!`, { id: 'delete' });
     } catch (e) {
       toast.error('Failed to delete form: ' + e.message, { id: 'delete' });
@@ -175,6 +204,110 @@ export default function FormsList() {
           </Link>
         </div>
 
+        {/* Dashboard Statistics */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                <div className="animate-pulse">
+                  <div className="flex items-center">
+                    <div className="bg-gray-200 rounded-lg w-10 h-10 sm:w-12 sm:h-12"></div>
+                    <div className="ml-3 sm:ml-4 flex-1">
+                      <div className="h-3 bg-gray-200 rounded w-20 mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded w-12"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {/* Total Forms */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center">
+                <div className="bg-blue-100 rounded-lg p-2 sm:p-3">
+                  <FileText size={20} className="text-blue-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Forms</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardStats.totalForms}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Published Forms */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center">
+                <div className="bg-green-100 rounded-lg p-2 sm:p-3">
+                  <CheckCircle size={20} className="text-green-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600">Published</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardStats.publishedForms}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Draft Forms */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center">
+                <div className="bg-orange-100 rounded-lg p-2 sm:p-3">
+                  <Clock size={20} className="text-orange-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600">Drafts</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardStats.draftForms}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Submissions */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center">
+                <div className="bg-purple-100 rounded-lg p-2 sm:p-3">
+                  <Users size={20} className="text-purple-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Responses</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardStats.totalSubmissions}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* This Week Forms */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center">
+                <div className="bg-indigo-100 rounded-lg p-2 sm:p-3">
+                  <TrendingUp size={20} className="text-indigo-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600">This Week</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardStats.thisWeekForms}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Average Response Rate */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center">
+                <div className="bg-cyan-100 rounded-lg p-2 sm:p-3">
+                  <BarChart3 size={20} className="text-cyan-600" />
+                </div>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600">Avg. Responses</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {dashboardStats.totalForms > 0 
+                      ? Math.round(dashboardStats.totalSubmissions / dashboardStats.totalForms)
+                      : 0
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {forms.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm">
             <FileText size={48} className="mx-auto text-gray-400 mb-4" />
@@ -187,6 +320,17 @@ export default function FormsList() {
           </div>
         ) : (
           <>
+            {/* Forms Section Header */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">All Forms</h2>
+                <p className="text-sm text-gray-600">Manage your forms and track their performance</p>
+              </div>
+              <div className="mt-3 sm:mt-0 flex items-center space-x-2 text-sm text-gray-500">
+                <span>{forms.length} form{forms.length !== 1 ? 's' : ''} total</span>
+              </div>
+            </div>
+
             {/* Desktop Table View */}
             <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
