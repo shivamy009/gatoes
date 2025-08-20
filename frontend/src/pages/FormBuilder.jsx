@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload, ArrowLeft, Trash2, Hash } from 'lucide-react';
+import { Save, Eye, BarChart3, Plus, ArrowUp, ArrowDown, X, Settings, Type, Mail, FileText, List, CheckSquare, Radio, Upload, ArrowLeft, Trash2, Hash, GripVertical, Minus } from 'lucide-react';
 import api from '../api';
 
 const fieldTemplates = [
@@ -9,9 +9,9 @@ const fieldTemplates = [
   { type: 'email', label: 'Email', icon: Mail, placeholder: 'you@example.com' },
   { type: 'number', label: 'Number', icon: Hash, placeholder: 'Enter number' },
   { type: 'textarea', label: 'Text Area', icon: FileText, placeholder: 'Enter details' },
-  { type: 'select', label: 'Dropdown', icon: List, options: ['Option 1', 'Option 2'] },
-  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, options: ['Option A', 'Option B'] },
-  { type: 'radio', label: 'Radio Buttons', icon: Radio, options: ['Yes', 'No'] },
+  { type: 'select', label: 'Dropdown', icon: List, options: ['Option 1', 'Option 2', 'Option 3'] },
+  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, options: ['Option A', 'Option B', 'Option C'] },
+  { type: 'radio', label: 'Radio Buttons', icon: Radio, options: ['Option 1', 'Option 2', 'Option 3'] },
   { type: 'file', label: 'File Upload', icon: Upload },
 ];
 
@@ -52,6 +52,15 @@ export default function FormBuilder() {
     const newField = { ...tpl, name: tpl.type + '_' + (fields.length + 1), required: false };
     setFields(prev => [...prev, newField]);
     setSelectedField(fields.length);
+    toast.success(`${tpl.label} field added!`);
+  };
+
+  const addFieldAtPosition = (tpl, position) => {
+    const newField = { ...tpl, name: tpl.type + '_' + (fields.length + 1), required: false };
+    const newFields = [...fields];
+    newFields.splice(position, 0, newField);
+    setFields(newFields);
+    setSelectedField(position);
     toast.success(`${tpl.label} field added!`);
   };
 
@@ -156,7 +165,7 @@ export default function FormBuilder() {
               </Link>
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Form Elements</h2>
-            <p className="text-sm text-gray-600">Drag or click to add fields</p>
+            <p className="text-sm text-gray-600">Drag to canvas or click to add fields</p>
           </div>
           
           {/* Mobile Field Types - Horizontal Scroll */}
@@ -169,7 +178,16 @@ export default function FormBuilder() {
                   <button 
                     key={ft.type} 
                     onClick={() => addField(ft)} 
-                    className="flex-shrink-0 p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group min-w-[100px]"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/json', JSON.stringify(ft));
+                      e.dataTransfer.setData('text/plain', 'new-field');
+                      e.currentTarget.style.opacity = '0.6';
+                    }}
+                    onDragEnd={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    className="flex-shrink-0 p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group min-w-[100px] cursor-grab active:cursor-grabbing select-none"
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <Icon size={20} className="text-gray-500 group-hover:text-blue-600" />
@@ -189,13 +207,24 @@ export default function FormBuilder() {
                 <button 
                   key={ft.type} 
                   onClick={() => addField(ft)} 
-                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('application/json', JSON.stringify(ft));
+                    e.dataTransfer.setData('text/plain', 'new-field');
+                    e.currentTarget.style.opacity = '0.6';
+                    e.currentTarget.style.transform = 'scale(0.95)';
+                  }}
+                  onDragEnd={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group cursor-grab active:cursor-grabbing select-none"
                 >
                   <div className="flex items-center space-x-3">
                     <Icon size={20} className="text-gray-500 group-hover:text-blue-600" />
                     <div>
                       <div className="font-medium text-gray-900 text-sm">{ft.label}</div>
-                      <div className="text-xs text-gray-500">Click to add</div>
+                      <div className="text-xs text-gray-500">Drag to canvas or click to add</div>
                     </div>
                   </div>
                 </button>
@@ -292,26 +321,144 @@ export default function FormBuilder() {
               </div>
 
               {/* Form Fields */}
-              <div className="space-y-4">
+              <div 
+                className="space-y-4 min-h-[200px]"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  const dragType = e.dataTransfer.types.includes('text/plain') ? e.dataTransfer.getData('text/plain') : null;
+                  if (dragType === 'new-field') {
+                    e.currentTarget.style.backgroundColor = '#eff6ff';
+                    e.currentTarget.style.borderRadius = '0.5rem';
+                  }
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '';
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.style.backgroundColor = '';
+                  
+                  const dragType = e.dataTransfer.getData('text/plain');
+                  if (dragType === 'new-field') {
+                    try {
+                      const fieldTemplate = JSON.parse(e.dataTransfer.getData('application/json'));
+                      addField(fieldTemplate);
+                    } catch (error) {
+                      console.error('Error parsing dropped field:', error);
+                    }
+                  }
+                }}
+              >
                 {fields.map((f,i) => (
-                  <div 
-                    key={i} 
-                    className={`bg-white rounded-lg shadow-sm border-2 transition-all ${
-                      selectedField === i ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedField(i)}
-                  >
+                  <React.Fragment key={i}>
+                    {/* Drop zone before each field */}
+                    <div
+                      className="drop-zone h-2 -my-1 opacity-0 hover:opacity-100 transition-opacity"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        const dragType = e.dataTransfer.types.includes('text/plain') ? e.dataTransfer.getData('text/plain') : null;
+                        if (dragType === 'new-field') {
+                          e.currentTarget.style.opacity = '1';
+                          e.currentTarget.style.backgroundColor = '#dbeafe';
+                          e.currentTarget.style.borderRadius = '4px';
+                          e.currentTarget.style.border = '2px dashed #3b82f6';
+                        }
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.style.opacity = '0';
+                        e.currentTarget.style.backgroundColor = '';
+                        e.currentTarget.style.border = '';
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.style.opacity = '0';
+                        e.currentTarget.style.backgroundColor = '';
+                        e.currentTarget.style.border = '';
+                        
+                        const dragType = e.dataTransfer.getData('text/plain');
+                        if (dragType === 'new-field') {
+                          try {
+                            const fieldTemplate = JSON.parse(e.dataTransfer.getData('application/json'));
+                            addFieldAtPosition(fieldTemplate, i);
+                          } catch (error) {
+                            console.error('Error parsing dropped field:', error);
+                          }
+                        }
+                      }}
+                    >
+                      <div className="text-center text-xs text-blue-500 py-1">Drop here to insert</div>
+                    </div>
+                    
+                    <div 
+                      className={`bg-white rounded-lg shadow-sm border-2 transition-all cursor-pointer select-none ${
+                        selectedField === i ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                      }`}
+                      onClick={() => setSelectedField(i)}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', i.toString());
+                        e.currentTarget.style.opacity = '0.6';
+                        e.currentTarget.style.transform = 'rotate(2deg)';
+                      }}
+                      onDragEnd={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                        e.currentTarget.style.transform = 'rotate(0deg)';
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        const dragType = e.dataTransfer.types.includes('text/plain') ? e.dataTransfer.getData('text/plain') : null;
+                        if (dragType !== 'new-field') {
+                          e.currentTarget.style.borderColor = '#3b82f6';
+                          e.currentTarget.style.borderWidth = '3px';
+                        }
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.style.borderColor = '';
+                        e.currentTarget.style.borderWidth = '2px';
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.style.borderColor = '';
+                        e.currentTarget.style.borderWidth = '2px';
+                        
+                        const dragType = e.dataTransfer.getData('text/plain');
+                        if (dragType !== 'new-field') {
+                          const draggedIndex = parseInt(dragType);
+                          const targetIndex = i;
+                          
+                          if (draggedIndex !== targetIndex) {
+                            const newFields = [...fields];
+                            const draggedField = newFields[draggedIndex];
+                            newFields.splice(draggedIndex, 1);
+                            newFields.splice(targetIndex, 0, draggedField);
+                            setFields(newFields);
+                            setSelectedField(targetIndex);
+                            toast.success('Field moved successfully!');
+                          }
+                        }
+                      }}
+                    >
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{f.label}</div>
-                          <div className="text-sm text-gray-500">{f.type}</div>
+                        <div className="flex items-center space-x-2 flex-1">
+                          <div 
+                            className="drag-handle cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                            title="Drag to reorder"
+                          >
+                            <GripVertical size={16} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{f.label}</div>
+                            <div className="text-sm text-gray-500 capitalize">{f.type}</div>
+                            {f.required && <span className="text-xs text-red-500 font-medium">Required</span>}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-1">
                           <button 
                             onClick={(e) => {e.stopPropagation(); moveField(i,-1);}} 
                             disabled={i === 0}
                             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                            title="Move up"
                           >
                             <ArrowUp size={16} />
                           </button>
@@ -319,12 +466,14 @@ export default function FormBuilder() {
                             onClick={(e) => {e.stopPropagation(); moveField(i,1);}} 
                             disabled={i === fields.length - 1}
                             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                            title="Move down"
                           >
                             <ArrowDown size={16} />
                           </button>
                           <button 
                             onClick={(e) => {e.stopPropagation(); removeField(i);}} 
                             className="p-1 text-red-400 hover:text-red-600"
+                            title="Remove field"
                           >
                             <X size={16} />
                           </button>
@@ -367,17 +516,101 @@ export default function FormBuilder() {
                       </div>
                     </div>
                   </div>
+                  </React.Fragment>
                 ))}
                 
+                {/* Drop zone after all fields */}
+                {fields.length > 0 && (
+                  <div
+                    className="drop-zone h-2 -my-1 opacity-0 hover:opacity-100 transition-opacity"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      const dragType = e.dataTransfer.types.includes('text/plain') ? e.dataTransfer.getData('text/plain') : null;
+                      if (dragType === 'new-field') {
+                        e.currentTarget.style.opacity = '1';
+                        e.currentTarget.style.backgroundColor = '#dbeafe';
+                        e.currentTarget.style.borderRadius = '4px';
+                        e.currentTarget.style.border = '2px dashed #3b82f6';
+                      }
+                    }}
+                    onDragLeave={(e) => {
+                      e.currentTarget.style.opacity = '0';
+                      e.currentTarget.style.backgroundColor = '';
+                      e.currentTarget.style.border = '';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.style.opacity = '0';
+                      e.currentTarget.style.backgroundColor = '';
+                      e.currentTarget.style.border = '';
+                      
+                      const dragType = e.dataTransfer.getData('text/plain');
+                      if (dragType === 'new-field') {
+                        try {
+                          const fieldTemplate = JSON.parse(e.dataTransfer.getData('application/json'));
+                          addField(fieldTemplate);
+                        } catch (error) {
+                          console.error('Error parsing dropped field:', error);
+                        }
+                      }
+                    }}
+                  >
+                    <div className="text-center text-xs text-blue-500 py-1">Drop here to add at end</div>
+                  </div>
+                )}
+                
                 {fields.length === 0 && (
-                  <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                  <div 
+                    className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300 transition-all"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const dragType = e.dataTransfer.types.includes('text/plain') ? e.dataTransfer.getData('text/plain') : null;
+                      if (dragType === 'new-field') {
+                        e.currentTarget.style.borderColor = '#3b82f6';
+                        e.currentTarget.style.backgroundColor = '#eff6ff';
+                        e.currentTarget.style.borderWidth = '3px';
+                      }
+                    }}
+                    onDragLeave={(e) => {
+                      e.stopPropagation();
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.borderWidth = '2px';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.borderWidth = '2px';
+                      
+                      const dragType = e.dataTransfer.getData('text/plain');
+                      if (dragType === 'new-field') {
+                        try {
+                          const fieldTemplate = JSON.parse(e.dataTransfer.getData('application/json'));
+                          addField(fieldTemplate);
+                        } catch (error) {
+                          console.error('Error parsing dropped field:', error);
+                        }
+                      }
+                    }}
+                  >
                     <Plus size={48} className="mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No fields yet</h3>
-                    <p className="text-gray-500 text-sm sm:text-base">Add fields from the {" "}
+                    <p className="text-gray-500 text-sm sm:text-base mb-2">Add fields from the {" "}
                       <span className="lg:hidden">top panel</span>
                       <span className="hidden lg:inline">left panel</span>
                       {" "}to get started
                     </p>
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-400 mb-2">
+                      <GripVertical size={16} />
+                      <span>Fields can be dragged to reorder</span>
+                    </div>
+                    <div className="inline-flex items-center justify-center space-x-2 text-sm text-blue-500 bg-blue-50 px-3 py-1 rounded-full">
+                      <span>📎</span>
+                      <span>Drop field types here to add</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -478,13 +711,44 @@ export default function FormBuilder() {
                 {['select','checkbox','radio'].includes(fields[selectedField].type) && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
-                    <textarea
-                      value={(fields[selectedField].options||[]).join('\n')} 
-                      onChange={e=>updateField(selectedField,{options:e.target.value.split('\n').filter(s=>s.trim())})} 
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      rows={4}
-                      placeholder="One option per line"
-                    />
+                    <div className="space-y-2">
+                      {(fields[selectedField].options || []).map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex items-center space-x-2">
+                          <input
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...(fields[selectedField].options || [])];
+                              newOptions[optionIndex] = e.target.value;
+                              updateField(selectedField, { options: newOptions });
+                            }}
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder={`Option ${optionIndex + 1}`}
+                          />
+                          <button
+                            onClick={() => {
+                              const newOptions = [...(fields[selectedField].options || [])];
+                              newOptions.splice(optionIndex, 1);
+                              updateField(selectedField, { options: newOptions });
+                            }}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Remove option"
+                          >
+                            <Minus size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          const currentOptions = fields[selectedField].options || [];
+                          const newOptions = [...currentOptions, `Option ${currentOptions.length + 1}`];
+                          updateField(selectedField, { options: newOptions });
+                        }}
+                        className="w-full border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg px-3 py-2 text-sm text-gray-500 hover:text-gray-600 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <Plus size={16} />
+                        <span>Add Option</span>
+                      </button>
+                    </div>
                   </div>
                 )}
                 
